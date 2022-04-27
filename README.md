@@ -63,6 +63,35 @@ RAII机制将资源的生命周期与类对象的生命周期绑定，将所有�
 
 异步日志先写入缓冲队列, 然后单独创建线程处理缓冲队列
 
+## ✅ 遇到的问题 / 细节问题
+
+### 1. CTRL+C 中止服务器后，不能立刻重启服务器
+
+**原因分析：**
+
+这是因为TCP正常断开连接要经历四挥手过程，主动断开连接的一方会经历TIME-WAIT阶段.
+
+**解决方法：**
+1. 复用处于 TIME-WAIT状态的 socket 为新的连接所用
+    * 用户态: 使用 `SO_REUSEADDR` 设置套接字
+        ```C++
+        setsockopt(serv_sock, SOL_SOCLET, SO_REUSERADD, ...)
+        ```
+    * 内核选项：tcp_tw_reuse
+2. 使用 SO_LINGER 设置套接字
+    ```C++
+    struct linger so_linger;
+    so_linger.l_onoff = 1;
+    so_linger.l_linger = 0;
+    setsockopt(s, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
+
+    用结构体linger实例化一个对象中第一个成员的值设为非0, 第二值设为0. 然后用该对象通过 setsockopt() 设置套接字, 那么调用 close() 函数后, 
+    会直接发送 RST 标志给对方, 该TCP连接将不进行四握手, 直接关闭. 
+    ```
+### 2. writv + ivoc + mmap
+
+### 3. LT ONESHOT
+
 
 ## 问题
 connection字段判断是keep-alive还是close，决定是长连接还是短连接  -  如何处理长连接和短链接 ？  // 如果是长连接，则将linger标志设置为true   m_linger = true;
