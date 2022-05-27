@@ -112,11 +112,6 @@ RAII机制将资源的生命周期与类对象的生命周期绑定，使用类�
 ### 3. LT ONESHOT
 
 
-## 问题
-connection字段判断是keep-alive还是close，决定是长连接还是短连接  -  如何处理长连接和短链接 ？  // 如果是长连接，则将linger标志设置为true   m_linger = true;
-
-## 个人收获
-
 
 ## 致谢
 [qinguoyi / TinyWebServer](https://github.com/qinguoyi/TinyWebServer)
